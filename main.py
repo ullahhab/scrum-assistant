@@ -60,7 +60,7 @@ def progressOfIssues(issues):
     for issue in issues:
         fields = issue['fields']
         #print(jsonDump(fields))
-        print(f"issue number= {issue['key']}\nissue summary={fields['summary']}\nprogress={fields['progress']['progress']}\nAssigned to: {fields['assignee']['displayName'] if fields['assignee'] else fields['assignee']}")
+        print(f"issue number= {issue['key']}\nissue summary={fields['summary']}\nprogress={fields['status']['name']}\nAssigned to: {fields['assignee']['displayName'] if fields['assignee'] else fields['assignee']}")
         print()
 
 
