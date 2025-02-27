@@ -21,8 +21,7 @@ def getAllProjects():
         global base_url, auth, headers
         url = f"{base_url}/rest/api/3/project"
         response = request("GET", url, headers=headers, auth=auth)
-        projects = json.loads(
-            response.text)  # json.dumps(json.loads(response.text), sort_keys=True, indent=4, separators=(",", ": "))
+        projects = response.json()  # json.dumps(json.loads(response.text), sort_keys=True, indent=4, separators=(",", ": "))
         for project in projects:
             getProjectIssues(project)
     except Exception as e:
@@ -32,12 +31,12 @@ def getAllProjects():
 
 def getProjectIssues(project):
     '''Get all the issues in the project and return json object'''
-    global auth, headers
+    global base_url, auth, headers
     key = project['key']
     url = f"{base_url}/rest/api/3/search?jql=project={key}&maxResult=1000"
     response = request("GET", url, headers=headers, auth=auth)
     # print(json.dumps(json.loads(response.text), sort_keys=True, indent=4, separators=(",", ": ")))
-    return json.loads(response.text)
+    return response.json()  # json.loads(response.text)
 
 
 def getProject(projectkey):
@@ -45,7 +44,7 @@ def getProject(projectkey):
     global base_url, auth, headers
     url = f"{base_url}/rest/api/3/project/{projectkey}"
     response = request("GET", url, headers=headers, auth=auth)
-    project = getProjectIssues(json.loads(response.text))
+    project = getProjectIssues(response.json())
     return project
 
 
@@ -59,12 +58,12 @@ def jsonDump(payload):
 def progressOfIssues(issues):
     for issue in issues:
         fields = issue['fields']
-        #print(jsonDump(fields))
-        print(f"issue number= {issue['key']}\nissue summary={fields['summary']}\nprogress={fields['status']['name']}\nAssigned to: {fields['assignee']['displayName'] if fields['assignee'] else fields['assignee']}")
+        print(jsonDump(issues))
+        # print(f"issue number= {issue['key']}\nissue summary={fields['summary']}\nprogress={fields['status']['name']}\nAssigned to: {fields['assignee']['displayName'] if fields['assignee'] else fields['assignee']}")
         print()
 
 
-progressOfIssues(getProject("SM")['issues'])
+# progressOfIssues(getProject("SM")['issues'])
 
 
 def traces():
@@ -73,4 +72,78 @@ def traces():
         tb = traceback.format_exc()
         print(f"traces {tb}")
 
+
+def get_transitions(key):
+    """Get the transitions avaialble for the story"""
+    global base_url, auth, headers
+    url = f"{base_url}/rest/api/3/issue/{key}/transitions"
+    print(url)
+    response = request("GET", url, headers=headers, auth=auth)
+
+    return response.json()['transitions']
+
+
+def manageIssue(key, transitionTo):
+    global base_url, headers, auth
+    transitions = get_transitions(key)
+    print(transitions)
+    available_trans = {}
+    for transition in transitions:
+        available_trans[transition['name']] = transition['id']
+    if transitionTo not in available_trans:
+        print("Transition is not availble for this issue")
+        return
+    url = f"{base_url}/rest/api/3/issue/{key}/transitions"
+
+    payload = constructPayload(['move'], available_trans)
+    '''json.dumps({
+        "transition": {
+            "id": available_trans[transitionTo]
+        }
+    })'''
+    response = request("POST", url, data=payload, headers=headers, auth=auth)
+    print(response.status_code)
+
+
+def constructPayload(actions, available_trans):
+    payload = {}
+    if "move" in actions:
+        payload["transition"] = {
+            "id": available_trans['In Progress']
+        }
+    if "comment" in actions:
+        payload["update"] = {
+            "comment": [
+              {
+                "add": {
+                  "body": {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "Bug has been fixed",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "doc",
+                    "version": 1
+                  }
+                }
+              }
+            ]
+        }
+    if "assign" in actions:
+        payload['fields'] = {
+            "asignee": {
+                "name": "Hamad"
+            }
+        }
+    return json.dumps(payload)
+
+
+
+manageIssue("SM-2", "Done")
 # getAllProjects()
