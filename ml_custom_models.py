@@ -1,15 +1,31 @@
 import os
 import pathlib
+
+import keras.src.utils.audio_dataset_utils
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 import tensorflow as tf
 
+seed = 42
+
+tf.random.set_seed(seed)
+np.random.seed(seed)
+
 # keras API
-from tensorflow.keras import layers, models
+from keras import layers, models
 
 
 def speech_to_text():
+    DATASET_PATH = 'data/mini_speech_command'
+    data_dir = pathlib.Path(DATASET_PATH)
+    if not data_dir.exists():
+        keras.utils.get_file(
+            'mini_speech_commands.zip',
+            origin="http://storage.googleapis.com/download.tensorflow.org/data/mini_speech_commands.zip",
+            extract=True,
+            cache_dir='.', cache_subdir='data')
+
     return
 
 
@@ -38,4 +54,6 @@ def speech_to_text_model(train_spectrogram_ds=None, num_labels=None):
 
     model.summary()
     return
+
+
 speech_to_text_model()
