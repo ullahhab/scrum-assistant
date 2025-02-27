@@ -15,6 +15,7 @@ np.random.seed(seed)
 # keras API
 from keras import layers, models
 
+"""just a small change"""
 
 def speech_to_text():
     DATASET_PATH = 'data/mini_speech_command'
