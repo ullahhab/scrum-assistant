@@ -114,25 +114,25 @@ def constructPayload(actions, available_trans):
     if "comment" in actions:
         payload["update"] = {
             "comment": [
-              {
-                "add": {
-                  "body": {
-                    "content": [
-                      {
-                        "content": [
-                          {
-                            "text": "Bug has been fixed",
-                            "type": "text"
-                          }
-                        ],
-                        "type": "paragraph"
-                      }
-                    ],
-                    "type": "doc",
-                    "version": 1
-                  }
+                {
+                    "add": {
+                        "body": {
+                            "content": [
+                                {
+                                    "content": [
+                                        {
+                                            "text": "Bug has been fixed",
+                                            "type": "text"
+                                        }
+                                    ],
+                                    "type": "paragraph"
+                                }
+                            ],
+                            "type": "doc",
+                            "version": 1
+                        }
+                    }
                 }
-              }
             ]
         }
     if "assign" in actions:
@@ -144,6 +144,77 @@ def constructPayload(actions, available_trans):
     return json.dumps(payload)
 
 
+# manageIssue("SM-2", "Done")
 
-manageIssue("SM-2", "Done")
+def issueComment(issue):
+    global base_url, auth, headers
+
+    url = f"{base_url}/rest/api/3/issue/{issue}/comment"
+
+    print(url)
+    response = request(
+        "GET",
+        url,
+        headers=headers,
+        auth=auth
+    )
+
+    print(jsonDump(response.json()))
+
+
+def getComments(issues):
+    if type(issues) is list:
+        for issue in issues:
+            issueComment(issue)
+    else:
+        issueComment(issues)
+
+
+#getComments(['SM-4', 'SM-2'])
+
+
+def addComment(issue, comment):
+    global base_url, auth, headers
+
+    url = f"{base_url}/rest/api/3/issue/{issue}/comment"
+
+    payload = json.dumps(
+        {
+            "body": {
+                "content": [
+                    {
+                        "content": [
+                            {
+                                "attrs": {
+                                    "accessLevel": "",
+                                    "id": "63d718a4f1475ad42c574c23",
+                                    "localId": "dfc57653-e4d1-4272-b449-039114e324ae",
+                                    "text": "@Hamad Ullah"
+                                },
+                                "type": "mention"
+                            },
+                            {
+                                "text": comment,
+                                "type": "text"
+                            }
+                        ],
+                        "type": "paragraph"
+                    }
+                ],
+                "type": "doc",
+                "version": 1
+            }
+        })
+    response = request(
+        "POST",
+        url,
+        data=payload,
+        headers=headers,
+        auth=auth
+    )
+    print(jsonDump(response.json()))
+
+
+addComment("SM-4", " Just trying to see if this is working 2")
+
 # getAllProjects()
