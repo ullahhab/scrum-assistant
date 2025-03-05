@@ -1,1 +1,1 @@
-# scrum-master
+# scrum-masters personal assistant bot
