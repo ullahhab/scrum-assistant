@@ -25,6 +25,8 @@ def getProjectIssues(project):
     key = project['key']
     url = f"{base_url}/rest/api/3/search?jql=project={key}&maxResult=1000"
     response = request("GET", url, headers=headers, auth=auth)
+    if response.status_code != 200:
+        print(response.text)
     #print(json.dumps(json.loads(response.text), sort_keys=True, indent=4, separators=(",", ": ")))
     return response.json()  # json.loads(response.text)
 
@@ -204,23 +206,39 @@ def addComment(issue, comment):
     )
     print(jsonDump(response.json()))
 
+def findUser(query):
+    global auth, headers, base_url
+    #jql = f'assignee="{query}"'
+    #url = f"{base_url}/rest/api/3/search?jql={jql}"
+    url = f"{base_url}/rest/api/3/user/search?query={query}"
+
+    response = request(
+        "GET",
+        url,
+        headers=headers,
+        auth=auth
+    )
+    print(jsonDump(response.json()))
+
+
 if __name__ == "__main__":
     tb_on = True
     jira_url = "https://viziontech.atlassian.net/rest/api/3/project"
 
-    base_url = "https://viziontech.atlassian.net"
+    #base_url = "https://viziontech.atlassian.net"
+    base_url = "https://apiteamassistant.atlassian.net"
 
     user_email = ''
     api_token = ''
+    tokenVal = 'demo'
     readfile = open('.env', 'r').read().split('\n')
     #read .env file save token as <var_name>=<token> and emails as <var_name>=<user_email>
     for line in readfile:
         if 'user_email' in line:
             user_email = line[11:].strip()
         #load token
-        elif 'viziontech' in line:
+        elif tokenVal in line:
             api_token = line[line.index('=')+1:]
-    print(api_token)
         
             
 
@@ -230,9 +248,10 @@ if __name__ == "__main__":
 
     headers = {"Accept": "application/json", "Content-Type": "application/json"}
 
-    print(getAllProjects())
+    #print(getAllProjects())
 
 
-#addComment("SM-4", " Just trying to see if this is working 2")
+    #addComment("APIHUB-2", " Just trying to see if this is working 2")
+    findUser('Ham')
 
 # getAllProjects()
