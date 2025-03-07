@@ -3,18 +3,6 @@ import json
 from requests.auth import HTTPBasicAuth
 import traceback
 
-tb_on = True
-jira_url = "https://viziontech.atlassian.net/rest/api/3/project"
-
-base_url = "https://viziontech.atlassian.net"
-user_email = "hammadullahris@gmail.com"
-
-api_token = open(".env", 'r').readline().split()[0]  # .split("=")[1].strip().strip('\n')
-
-auth = HTTPBasicAuth(user_email, api_token)
-
-headers = {"Accept": "application/json", "Content-Type": "application/json"}
-
 
 def getAllProjects():
     try:
@@ -22,8 +10,10 @@ def getAllProjects():
         url = f"{base_url}/rest/api/3/project"
         response = request("GET", url, headers=headers, auth=auth)
         projects = response.json()  # json.dumps(json.loads(response.text), sort_keys=True, indent=4, separators=(",", ": "))
+        projectObj = []
         for project in projects:
-            getProjectIssues(project)
+            projectObj.append(getProjectIssues(project))
+        return projectObj
     except Exception as e:
         traces()
         print(f"Something bad happened: {e}")
@@ -35,7 +25,7 @@ def getProjectIssues(project):
     key = project['key']
     url = f"{base_url}/rest/api/3/search?jql=project={key}&maxResult=1000"
     response = request("GET", url, headers=headers, auth=auth)
-    # print(json.dumps(json.loads(response.text), sort_keys=True, indent=4, separators=(",", ": ")))
+    #print(json.dumps(json.loads(response.text), sort_keys=True, indent=4, separators=(",", ": ")))
     return response.json()  # json.loads(response.text)
 
 
@@ -214,7 +204,35 @@ def addComment(issue, comment):
     )
     print(jsonDump(response.json()))
 
+if __name__ == "__main__":
+    tb_on = True
+    jira_url = "https://viziontech.atlassian.net/rest/api/3/project"
 
-addComment("SM-4", " Just trying to see if this is working 2")
+    base_url = "https://viziontech.atlassian.net"
+
+    user_email = ''
+    api_token = ''
+    readfile = open('.env', 'r').read().split('\n')
+    #read .env file save token as <var_name>=<token> and emails as <var_name>=<user_email>
+    for line in readfile:
+        if 'user_email' in line:
+            user_email = line[11:].strip()
+        #load token
+        elif 'viziontech' in line:
+            api_token = line[line.index('=')+1:]
+    print(api_token)
+        
+            
+
+    #api_token = open(".env", 'r').readline().split()[0]  # .split("=")[1].strip().strip('\n')
+
+    auth = HTTPBasicAuth(user_email, api_token)
+
+    headers = {"Accept": "application/json", "Content-Type": "application/json"}
+
+    print(getAllProjects())
+
+
+#addComment("SM-4", " Just trying to see if this is working 2")
 
 # getAllProjects()
