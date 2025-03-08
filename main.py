@@ -165,11 +165,21 @@ def getComments(issues):
 #getComments(['SM-4', 'SM-2'])
 
 
-def addComment(issue, comment):
+def addComment(issue, comment, mention=None):
     global base_url, auth, headers
-
+    parse_mention = None
+    id = ''
+    name = ''
+    if mention:
+        parse_mention = findUser(mention)[0]
+    
+    if parse_mention:
+        id = parse_mention['accountId']
+        name = parse_mention['displayName']
+    
     url = f"{base_url}/rest/api/3/issue/{issue}/comment"
 
+    #"localId": "dfc57653-e4d1-4272-b449-039114e324ae",
     payload = json.dumps(
         {
             "body": {
@@ -179,9 +189,8 @@ def addComment(issue, comment):
                             {
                                 "attrs": {
                                     "accessLevel": "",
-                                    "id": "63d718a4f1475ad42c574c23",
-                                    "localId": "dfc57653-e4d1-4272-b449-039114e324ae",
-                                    "text": "@Hamad Ullah"
+                                    "id": id,
+                                    "text": f"@{name}"
                                 },
                                 "type": "mention"
                             },
@@ -207,9 +216,13 @@ def addComment(issue, comment):
     print(jsonDump(response.json()))
 
 def findUser(query):
+    """Find user based on prefix and matching name"""
     global auth, headers, base_url
+    '''
+    this is for search
     #jql = f'assignee="{query}"'
-    #url = f"{base_url}/rest/api/3/search?jql={jql}"
+    #url = f"{base_url}/rest/api/3/search?jql={jql}"'
+    '''
     url = f"{base_url}/rest/api/3/user/search?query={query}"
 
     response = request(
@@ -219,6 +232,7 @@ def findUser(query):
         auth=auth
     )
     print(jsonDump(response.json()))
+    return response.json()
 
 
 if __name__ == "__main__":
@@ -250,8 +264,9 @@ if __name__ == "__main__":
 
     #print(getAllProjects())
 
-
+    x = findUser('Abhishek')
+    print(x[0]['accountId'], x[0]['displayName'])
     #addComment("APIHUB-2", " Just trying to see if this is working 2")
-    findUser('Ham')
+    addComment("APIHUB-2", "just trying to see if this works with comments", "Abhishek")
 
 # getAllProjects()
