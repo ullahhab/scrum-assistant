@@ -171,10 +171,13 @@ def addComment(issue, comment, mention=None):
     id = ''
     name = ''
     if mention:
-        parse_mention = findUser(mention)[0]
-    
-    if parse_mention:
-        id = parse_mention['accountId']
+        try:
+            parse_mention = findUser(mention)[0]
+        except Exception as e:
+            print(f"Can not process your request due to: {e}")
+            return
+    if  parse_mention:
+        id  = parse_mention['accountId']
         name = parse_mention['displayName']
     
     url = f"{base_url}/rest/api/3/issue/{issue}/comment"
@@ -186,18 +189,6 @@ def addComment(issue, comment, mention=None):
                 "content": [
                     {
                         "content": [
-                            {
-                                "attrs": {
-                                    "accessLevel": "",
-                                    "id": id,
-                                    "text": f"@{name}"
-                                },
-                                "type": "mention"
-                            },
-                            {
-                                "text": comment,
-                                "type": "text"
-                            }
                         ],
                         "type": "paragraph"
                     }
@@ -206,6 +197,27 @@ def addComment(issue, comment, mention=None):
                 "version": 1
             }
         })
+    payload = json.loads(payload)
+    print(payload['body'])
+    if parse_mention:
+        new_content = {
+            "attrs": {
+                "id": id,
+                "text": f"@{name}"
+            },
+            'type': 'mention'
+        }
+        payload["body"]["content"][0]['content'].append(new_content)
+    if comment:
+        new_content = {
+            "text": comment,
+            "type": "text"
+        }
+        payload['body']['content'][0]['content'].append(new_content)
+    else:
+        print("nothing to comment")
+        return
+    payload = json.dumps(payload, indent=4)
     response = request(
         "POST",
         url,
@@ -267,6 +279,6 @@ if __name__ == "__main__":
     x = findUser('Abhishek')
     print(x[0]['accountId'], x[0]['displayName'])
     #addComment("APIHUB-2", " Just trying to see if this is working 2")
-    addComment("APIHUB-2", "just trying to see if this works with comments", "Abhishek")
+    addComment("APIHUB-2", " just trying to see if this works with comments", "Abhishek")
 
 # getAllProjects()
